@@ -6,11 +6,14 @@
     FROM        #基础镜像，99%的镜像都基于scratch，相当于Object类
     MAINTANINER #作者
     RUN         #镜像构建的时候需要运行的命令
-    ADD         #新增内容，比如在centos里增加tomcat
+    ADD         #新增内容，比如在centos里增加tomcat，如果是压缩包会自动解压
     WORKDIR     #工作目录，即镜像启动后默认进入的目录
     VOLUME      #设置挂载卷
     EXPOSE      #映射主机的端口
     CMD         #容器启动后会运行的命令，一个CMD只能有一个命令，如果有多个则运行最后一个
+                #第一种用法：运行一个可执行的文件并提供参数。
+                #第二种用法：为ENTRYPOINT指定参数。
+                #第三种用法(shell form)：是以”/bin/sh -c”的方法执行的命令。
     ENTRYPOINT  #容器启动后会运行的命令，与CMD不同，可以在run的时候追加命令
         如定义了 CMD["ls","-a"]，容器运行后只会执行ls -a
         如定义了 CMD["ls","-a"]，可以通过docker run ................ -l的方式运行ls -al
