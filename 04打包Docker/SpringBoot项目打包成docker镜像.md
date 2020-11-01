@@ -1,4 +1,3 @@
-
 #前提：先打包好jar包，jar包与DockerFile在同一文件夹内
 FROM java:8
 #将Dockerfile同目录下的jar文件复制到容器内根目录内，取名为app.jar
