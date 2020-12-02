@@ -1,0 +1,19 @@
+#其中一个示例，hjy是SpringBoot应用，已用DockerFile写好
+#版本
+version: '3.2'
+#服务
+services:
+  hjy:
+    #默认构建同路径下的Dockerfile
+    build: .
+    #构建后的镜像名是
+    image: hjy
+    #容器启动的端口映射
+    ports:
+    - 8080:8080
+    #以来redis1服务，等redis1容器启动后再启动本容器
+    depends_on:
+      - redis1
+  redis1:
+    #默认使用redis镜像启动容器
+    image: "redis"
