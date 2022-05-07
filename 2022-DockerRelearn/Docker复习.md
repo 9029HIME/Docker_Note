@@ -102,3 +102,58 @@ docker volume prune：删除所有**没被挂载**的数据卷。
 
 docker volume rm 数据卷名或ID：删除对应数据卷。
 
+## 9-数据卷的挂载
+
+知识点8只要针对数据卷的操作，但是数据卷被新建后还需要挂载到容器才能发挥它的作用：在创建容器的时候，通过-v参数挂载一个数据卷到容器的目录内。以修改nginx容器内html信息为例：
+
+![image](https://user-images.githubusercontent.com/48977889/167239666-7ce1255c-4545-49f3-bf82-5ec5d852f22a.png)
+
+新建了一个nginxHtml数据卷，通过docker inspect nginxHtml找到它在宿主机的挂载点，进去后发现是没有任何数据的，因为这个数据卷还没被容器挂载。然后新建一个nginx容器，通过-v nginxHtml:/usr/share/nginx/html这个参数将容器内usr/share/nginx/html这个路径挂载到nginxHtml这个数据卷内。这样就能在宿主机直接操作容器内的文件了。
+
+**当然，如果没有新建过nginxHtml数据卷，在新建容器时挂载指定nginxHtml的话，docker会帮我们自动创建。**除了这种方式外，还有一种叫“匿名挂载”的方式，当然这个方式很少会用到，具体说明在第一次学Docker的笔记里说过了。
+
+## 10-目录挂载
+
+知识点9讲的是针对数据卷的容器挂载，可是数据卷是docker帮我们生成的一个目录，很多时候我们希望docker容器直接挂载到指定的目录下，这时就要用到目录挂载了。其实目录挂载和数据卷挂载的方式一样，只不过数据卷名换成宿主机的真实路径罢了：
+
+![image](https://user-images.githubusercontent.com/48977889/167240083-a5d5149d-8514-40c6-9f24-ad4b459b42b8.png)
+
+可以看到，通过目录挂载的方式创建容器，是不会有数据卷新增的。但是有个很奇怪的现象，当容器启动后，宿主机的挂载目录却没有任何内容，进入到容器内一看，/usr/share/nginx/html的内容也没了。
+
+这是因为采用目录挂载的方式创建容器时，容器会将宿主机的挂载目录复制过去，遵循宿主机的内容。而采用数据卷挂载的话，是将容器内的目录内容拷贝到宿主机里数据卷所在的目录，是宿主机遵循容器的内容，这是需要注意的。
+
+那么我如何知道这个容器属于数据卷挂载还是目录挂载呢？用docker inspect 容器id或容器名称，可以查看到容器的元数据，以下图1和图2分别是SecondNginx和PathNginx的元数据（节选）：
+
+```json
+{
+"Mounts": [
+            {
+                "Type": "volume",
+                "Name": "nginxHtml",
+                "Source": "/var/lib/docker/volumes/nginxHtml/_data",
+                "Destination": "/usr/share/nginx/html",
+                "Driver": "local",
+                "Mode": "z",
+                "RW": true,
+                "Propagation": ""
+            }
+        ]
+}
+```
+
+```json
+{
+"Mounts": [
+            {
+                "Type": "bind",
+                "Source": "/nginxHtml",
+                "Destination": "/usr/share/nginx/html",
+                "Mode": "",
+                "RW": true,
+                "Propagation": "rprivate"
+            }
+        ]
+}
+```
+
+通过Mounts节点的type字段可以确定是数据卷挂载还是目录挂载。不管是哪种挂载，通过Source字段都能定位到宿主机被挂载的目录。
